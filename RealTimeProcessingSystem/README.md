@@ -91,6 +91,8 @@ ALTER ROLE FarmWebAppRole ADD MEMBER [<app-service-name>];
 
 Replace the placeholder with the App Service's system-assigned identity name.
 
+If storage role assignment is unavailable in a restricted student subscription, the MVC app also accepts the `FarmStorage` storage connection string as a fallback. This grants broad account-key access; store it only in the App Service's private app settings and never in source control, browser code, or evidence. Prefer managed identity and scoped data roles whenever role assignment is permitted.
+
 SQL networking must allow the approved App Service and Function App to reach the database. Do not enable a broad firewall exception without institution approval; ask the institution for its permitted network pattern. Local development similarly requires an approved, temporary client-IP firewall rule.
 
 ## Local development

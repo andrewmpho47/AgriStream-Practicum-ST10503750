@@ -14,13 +14,22 @@ public sealed class FarmStorageService
 
     public FarmStorageService(TokenCredential credential, IConfiguration configuration)
     {
-        var blobEndpoint = configuration["FarmStorage:blobServiceUri"]
-            ?? throw new InvalidOperationException("FarmStorage__blobServiceUri must be configured.");
-        var tableEndpoint = configuration["FarmStorage:tableServiceUri"]
-            ?? throw new InvalidOperationException("FarmStorage__tableServiceUri must be configured.");
         _containerName = configuration["FarmStorage:container"] ?? "drone-images";
-        _blobService = new BlobServiceClient(new Uri(blobEndpoint), credential);
-        _sensorReadings = new TableServiceClient(new Uri(tableEndpoint), credential).GetTableClient("SensorReadings");
+        var storageConnection = configuration["FarmStorage"];
+        if (!string.IsNullOrWhiteSpace(storageConnection))
+        {
+            _blobService = new BlobServiceClient(storageConnection);
+            _sensorReadings = new TableServiceClient(storageConnection).GetTableClient("SensorReadings");
+        }
+        else
+        {
+            var blobEndpoint = configuration["FarmStorage:blobServiceUri"]
+                ?? throw new InvalidOperationException("FarmStorage__blobServiceUri must be configured.");
+            var tableEndpoint = configuration["FarmStorage:tableServiceUri"]
+                ?? throw new InvalidOperationException("FarmStorage__tableServiceUri must be configured.");
+            _blobService = new BlobServiceClient(new Uri(blobEndpoint), credential);
+            _sensorReadings = new TableServiceClient(new Uri(tableEndpoint), credential).GetTableClient("SensorReadings");
+        }
     }
 
     public async Task<string> UploadDroneImageAsync(IFormFile file, string extension, CancellationToken cancellationToken)
