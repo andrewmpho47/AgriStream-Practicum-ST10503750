@@ -42,19 +42,30 @@ This file tracks portal setup for the AgriStream farm practicum. Never record pa
 - [x] Initial workflow deployment succeeded and Azure showed the four farm Functions enabled: `GetSensorReadings` (HTTP), `ProcessIrrigationCommand` (Queue), `RecordDroneImageUpload` (Blob), and `RequestIrrigation` (HTTP).
 - [x] Initial `GetSensorReadings` test returned HTTP 500 because duplicate `TableClient` registrations caused dependency injection to supply `BlobProcessingLog` instead of `SensorReadings`. The table-client selection fix was built, pushed, redeployed, and verified by a subsequent HTTP 200 response (`[]`).
 - [x] Confirmed privately that `FarmStorage` uses HTTPS and the account name is `rtp10503750farm26`; confirmed that account contains `SensorReadings`.
-- [ ] Configure the MVC App Service settings/identity and deploy it using the manual GitHub Actions workflow; test full flows.
+- [x] Configured the MVC App Service settings and system identity, added its SQL role, and deployed it through the manual GitHub Actions workflow.
+- [ ] Verify MVC registration/login, dashboard telemetry, drone upload, irrigation queue processing, and SQL updates end to end.
 - [ ] Resolve SQL networking: the temporary client-IP firewall rule may not allow App Service/Functions traffic. Do not enable broad Azure-service access unless specifically approved.
-- [ ] Configure MVC system identity and add it to `FarmWebAppRole` in SQL; check whether current permissions allow this.
-- [x] Added `.github/workflows/deploy-webapp.yml`, a manual-only workflow to publish `RealTimeProcessingSystem` to `ST10503750-agristream`. The MVC project builds successfully; add `AZURE_WEBAPP_PUBLISH_PROFILE` as a GitHub Actions repository secret before running it.
+- [x] Enabled the MVC system identity and added it to `FarmWebAppRole` in SQL.
+- [x] Added `.github/workflows/deploy-webapp.yml`, a manual-only workflow to publish `RealTimeProcessingSystem` to `ST10503750-agristream`. The MVC project builds successfully; the `AZURE_WEBAPP_PUBLISH_PROFILE` repository secret was configured and the deployment workflow succeeded.
 - [x] Added an MVC storage connection-string fallback for restricted subscriptions where Storage data-role assignment is unavailable. The managed-identity endpoint path remains preferred; any account key must stay in the private App Service setting.
-- [ ] Publish the MVC and Function projects using an approved method and verify the end-to-end flows.
+- [x] Published the MVC and Function projects using the approved GitHub Actions workflows; the Function HTTP telemetry endpoint returned HTTP 200 with an empty JSON array.
+- [ ] Verify the remaining end-to-end MVC and event-triggered Function flows.
 
 ## Monitoring, load, and scaling evidence
 
 - [ ] Set up/verify Application Insights and Azure Monitor if permitted. Function App invocation diagnostics are currently available through Log stream; Application Insights is not enabled.
 - [ ] Run a controlled, approved load test. Record test settings, response times, errors, and actual Azure resource metrics.
 - [ ] The MVC App Service uses Shared D1 and the reused Function App is also on Shared D1. Shared does not support the requested CPU/memory autoscale evidence. Subscription policies blocked creation of dynamic/Flex plans and plans outside the allowed Basic/Shared SKU set; do not work around policy. Document the limitation and request the institution's accepted alternative.
-- [ ] Capture sanitized screenshots and complete the written analysis/theory questions. Preserve evidence of deployment workflow success, the four Functions, function tests, storage resources, SQL schema/roles, and the Azure policy errors.
+- [x] Created the written report with theory responses, code excerpts, and the available deployment, Function, Storage, SQL, and Web App screenshots.
+- [ ] Capture remaining evidence for the login/dashboard result, end-to-end Blob/Queue tests, and hosting-policy denials. Review/redact screenshots before sharing them outside the course submission.
+
+## Login diagnostic and current code fix
+
+- The user reported that the login POST returned HTTP 302 with `Location: /Account/Login?ReturnUrl=%2FHome%2FError`. A 302 is a redirect, not by itself proof of a failed login.
+- AppLens reported no application crashes or HTTP server errors in its diagnostic window and detected an app stop/restart event. That result does not identify the request's underlying exception.
+- `HomeController` is protected by `[Authorize]`, and production exception handling routes to `/Home/Error`. The Error action now has `[AllowAnonymous]` so the exception handler can render its generic error page instead of redirecting to Login. The MVC project builds with zero warnings and errors after this local fix.
+- The fix is not yet deployed or verified in Azure. If the dashboard still fails after deployment, inspect the App Service Log stream during one sign-in attempt; do not enable Development mode or share app secrets.
+- The App Service SCM Basic Auth Publishing Credentials setting must be turned off after deployments are complete. FTP Basic Auth should remain off.
 
 ## Important caveats
 
