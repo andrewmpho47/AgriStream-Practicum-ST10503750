@@ -1,0 +1,30 @@
+name: Deploy AgriStream Web App
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Publish MVC project
+        run: dotnet publish RealTimeProcessingSystem/RealTimeProcessingSystem.csproj --configuration Release --output ./publish
+
+      - name: Deploy to Azure App Service
+        uses: Azure/webapps-deploy@v3
+        with:
+          app-name: ST10503750-agristream
+          package: ./publish
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
