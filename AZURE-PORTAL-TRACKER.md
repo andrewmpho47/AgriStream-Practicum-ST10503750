@@ -21,6 +21,7 @@ This file tracks portal setup for the AgriStream farm practicum. Never record pa
 - [x] `irrigation-commands` Storage Queue created.
 - [x] SQL logical server `rtp10503750-sql26` and database `AgriStreamDb` created; database is Online, Basic (2 GB), Entra-only authentication, LRS backup. Review estimate was USD 7.15/month; check Cost Management for actual charges.
 - [x] Run `database/farm-practicum.sql` in the `AgriStreamDb` Query Editor; verified `FarmUsers`, `Devices`, `FarmWebAppRole`, and `FarmFunctionsRole`.
+- [x] Added the system-assigned identity of `st10503750-abc-retail-functions` to `FarmFunctionsRole` in `AgriStreamDb`.
 - [ ] Remove the temporary SQL firewall rule for the current client IP when local database testing is complete. Public network access is set to Selected networks; the broad Azure-services exception is disabled.
 
 ## Code and app configuration
@@ -32,25 +33,33 @@ This file tracks portal setup for the AgriStream farm practicum. Never record pa
 - [x] Built both .NET 10 projects after user approval; both succeeded with 0 warnings and 0 errors. Updated transitive `System.Security.Cryptography.Pkcs` to patched 10.0.14; NuGet vulnerability scans report no vulnerable packages.
 - [x] Verify the generated Functions metadata contains exactly four Functions and validate the local settings sample JSON.
 - [x] Created separate practicum Web App `ST10503750-agristream` in South Africa North, Windows, .NET 10, using existing Shared D1 plan `ASP-RSGRCGPONST10503750SANORTH-90c7`; no additional database or App Insights resource was selected.
-- [ ] Create a separate Function App for the practicum. Do not overwrite `st10503750` or `st10503750-abc-retail-functions`.
-- [ ] Set up the new apps' application settings using the non-secret examples in `RealTimeProcessingSystem/README.md`.
-- [ ] Confirm institutional approval before publishing to or changing existing `st10503750` or `st10503750-abc-retail-functions`.
-- [ ] Enable the approved managed identities and assign only required Blob, Table, Queue, and SQL permissions.
+- [x] New Function App creation was blocked: Flex Consumption required `Microsoft.App/register/action`; Windows Consumption and a new App Service plan were denied by subscription/management-group SKU policy.
+- [x] With the user's approval, repurposed existing `st10503750-abc-retail-functions` (formerly retail functions) rather than the blocked new app. The resource remains named for the retail project and runs on Shared D1; this is not a supported Functions hosting tier and does not provide the practicum's autoscaling evidence.
+- [x] Changed the existing Function App runtime to .NET 10 isolated; confirmed .NET v10.0 in Overview. Enabled its system-assigned identity.
+- [x] Configured `FarmStorage` as an app setting using the existing storage account connection string, and configured `SqlConnectionString` without a SQL username/password. Values are intentionally not recorded here.
+- [x] Added the Function App identity to `FarmFunctionsRole` in `AgriStreamDb`.
+- [x] Added `.github/workflows/deploy-functions.yml`, a manual-only GitHub Actions workflow that publishes `RealTimeProcessing.Functions` with .NET 10. Repository secret `AZURE_FUNCTIONAPP_PUBLISH_PROFILE` is used for deployment; do not record its value.
+- [x] Initial workflow deployment succeeded and Azure showed the four farm Functions enabled: `GetSensorReadings` (HTTP), `ProcessIrrigationCommand` (Queue), `RecordDroneImageUpload` (Blob), and `RequestIrrigation` (HTTP).
+- [ ] Initial `GetSensorReadings` test returned HTTP 500 because two `TableClient` registrations of the same type caused dependency injection to supply `BlobProcessingLog` instead of `SensorReadings`. The code fix was built successfully and pushed; rerun the manual workflow and retest.
+- [ ] Verify `FarmStorage` string targets `rtp10503750farm26` (account name confirmed) and that `GetSensorReadings` returns HTTP 200 after redeployment.
+- [ ] Configure the MVC App Service settings/identity and deploy it using an approved method; test full flows.
+- [ ] Resolve SQL networking with the institution; the temporary client-IP firewall rule may not allow App Service/Functions traffic.
 - [ ] Resolve SQL networking with the institution; do not enable broad Azure-service access unless specifically approved.
 - [ ] Publish the MVC and Function projects using an approved method and verify the end-to-end flows.
 
 ## Monitoring, load, and scaling evidence
 
-- [ ] Set up/verify Application Insights and Azure Monitor for the approved app resources.
+- [ ] Set up/verify Application Insights and Azure Monitor if permitted. Function App invocation diagnostics are currently available through Log stream; Application Insights is not enabled.
 - [ ] Run a controlled, approved load test. Record test settings, response times, errors, and actual Azure resource metrics.
-- [ ] The selected App Service plan is Shared D1. The practicum requests CPU/memory-based scale-out, which Shared does not support. Do not upgrade an existing school plan without approval; document the portal limitation and ask for an accepted alternative/evidence.
-- [ ] Capture sanitized screenshots and complete the written analysis/theory questions.
+- [ ] The MVC App Service uses Shared D1 and the reused Function App is also on Shared D1. Shared does not support the requested CPU/memory autoscale evidence. Subscription policies blocked creation of dynamic/Flex plans and plans outside the allowed Basic/Shared SKU set; do not work around policy. Document the limitation and request the institution's accepted alternative.
+- [ ] Capture sanitized screenshots and complete the written analysis/theory questions. Preserve evidence of deployment workflow success, the four Functions, function tests, storage resources, SQL schema/roles, and the Azure policy errors.
 
 ## Important caveats
 
 - The database estimate is not a guarantee of actual charges; inspect Cost Management.
 - The MVC sample-reading button creates synthetic data for testing and must be labeled as such.
 - Function keys belong only in server-side app configuration/approved secret storage.
+- The reused Function App's `FarmStorage` value is a storage account connection string. Treat it as a secret with broad account access; never place it in source control, screenshots, or the tracker. Prefer managed identity with scoped data roles when the subscription permits role assignment.
 - The legacy `RealTimeProcessingSystem/azure/deploy-azure.ps1` is disabled because it targets a different resource group and region.
 - The old `database/processed-orders.sql` and order API are not the farm practicum implementation.
 - No local changes are automatically published to Azure.

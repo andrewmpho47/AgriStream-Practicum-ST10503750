@@ -45,7 +45,7 @@ Both apps use `DefaultAzureCredential` only in development and `ManagedIdentityC
 
 ### Function App application settings
 
-Configure these on the **approved** Function App. Keep `AzureWebJobsStorage` set to the Function host's approved storage account. For identity-based storage bindings, use the app setting names below (the double underscore maps to `:` in .NET configuration):
+Configure these on the Function App. Keep `AzureWebJobsStorage` set to the Function host's existing storage account. The preferred configuration uses a system-assigned identity and identity-based service endpoints (the double underscore maps to `:` in .NET configuration):
 
 ```text
 FarmStorage__blobServiceUri=https://rtp10503750farm26.blob.core.windows.net/
@@ -62,6 +62,12 @@ ALTER ROLE FarmFunctionsRole ADD MEMBER [<function-app-name>];
 ```
 
 Replace the placeholder with the Function App's system-assigned identity name. Review the Function App's host-storage configuration before changing or publishing it.
+
+If role assignment is unavailable in a restricted student subscription, the current implementation also accepts a `FarmStorage` storage connection string instead of the service URI settings above. This is a less-privileged-control (account-key) fallback with broad storage-account access: store it only in the Function App's private app settings, never in source control or evidence. The deployed student Function App currently uses this fallback because storage role assignment was disabled. The host setting `AzureWebJobsStorage` is separate and must not be overwritten.
+
+### GitHub Actions deployment
+
+The repository workflow at [`../.github/workflows/deploy-functions.yml`](../.github/workflows/deploy-functions.yml) is manually triggered (`workflow_dispatch`) and publishes the Functions project folder using .NET 10. Add the Azure Function App publish profile as repository Actions secret `AZURE_FUNCTIONAPP_PUBLISH_PROFILE`; never commit or share the profile. Start a deployment from GitHub **Actions** only after reviewing the workflow and target app. This workflow currently targets the user's explicitly repurposed existing `st10503750-abc-retail-functions` resource because Azure policy blocked creation of a new Function App plan.
 
 ### MVC App Service application settings
 
@@ -130,4 +136,4 @@ Both processes access the same Azure Blob/Table/Queue account using your signed-
 6. Test invalid HTTP payloads and capture sanitized screenshots. Do not include function keys, access keys, passwords, or connection strings in evidence.
 7. Use an approved load-test method and Azure Monitor/Application Insights to record the actual response and resource metrics. Simulator/sample data is not production telemetry.
 
-The assigned App Service plan is policy-limited to B1. App Service autoscale rules in the practicum rubric require a higher supported tier; do not upgrade this plan without institution approval. Ask the lecturer how to evidence this rubric item under the B1 policy constraint.
+The existing MVC App Service and the repurposed Function App run on Shared D1. Shared does not support the requested CPU/memory-based autoscale evidence, and Azure subscription/management-group policies blocked creation of a new Function App on the attempted plans. Do not circumvent these policies or upgrade shared institutional plans without approval. Document the restriction and request an accepted alternative for the rubric.
