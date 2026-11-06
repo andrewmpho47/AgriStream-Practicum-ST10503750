@@ -12,9 +12,11 @@ public sealed class RecordDroneImageUploadFunction
     private readonly TableClient _processingLog;
     private readonly ILogger<RecordDroneImageUploadFunction> _logger;
 
-    public RecordDroneImageUploadFunction(TableClient processingLog, ILogger<RecordDroneImageUploadFunction> logger)
+    public RecordDroneImageUploadFunction(
+        TableServiceClient tableService,
+        ILogger<RecordDroneImageUploadFunction> logger)
     {
-        _processingLog = processingLog;
+        _processingLog = tableService.GetTableClient("BlobProcessingLog");
         _logger = logger;
     }
 

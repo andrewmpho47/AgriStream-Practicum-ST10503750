@@ -40,8 +40,6 @@ var host = new HostBuilder()
                 new Uri(Required(configuration, "FarmStorage:queueServiceUri")),
                 sp.GetRequiredService<TokenCredential>()));
         }
-        services.AddSingleton(sp => sp.GetRequiredService<TableServiceClient>().GetTableClient("SensorReadings"));
-        services.AddSingleton(sp => sp.GetRequiredService<TableServiceClient>().GetTableClient("BlobProcessingLog"));
         services.AddSingleton<SqlConnectionFactory>();
         services.AddSingleton<FarmSqlRepository>();
     })

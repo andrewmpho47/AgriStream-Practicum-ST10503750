@@ -10,9 +10,9 @@ public sealed class GetSensorReadingsFunction
 {
     private readonly TableClient _sensorReadings;
 
-    public GetSensorReadingsFunction(TableClient sensorReadings)
+    public GetSensorReadingsFunction(TableServiceClient tableService)
     {
-        _sensorReadings = sensorReadings;
+        _sensorReadings = tableService.GetTableClient("SensorReadings");
     }
 
     [Function(nameof(GetSensorReadings))]
