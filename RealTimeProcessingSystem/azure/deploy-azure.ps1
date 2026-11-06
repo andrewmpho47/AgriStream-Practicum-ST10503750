@@ -1,0 +1,1 @@
+throw "This legacy script provisions an unrelated resource group and App Service. It is intentionally disabled for the institution-assigned subscription. Follow AZURE-PORTAL-TRACKER.md and use only institution-approved resources."

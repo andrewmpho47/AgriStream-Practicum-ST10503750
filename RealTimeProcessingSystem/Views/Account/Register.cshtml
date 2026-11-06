@@ -1,0 +1,28 @@
+@model RealTimeProcessingSystem.Models.RegisterViewModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<section class="surface account-panel">
+    <p class="section-kicker">FARM ACCOUNT</p>
+    <h1>Create a farmer account</h1>
+    <p>New registrations receive the Farmer role. Administrators assign Agronomist and Admin roles.</p>
+    <form asp-action="Register" method="post" class="farm-form">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <label asp-for="Username"></label>
+        <input asp-for="Username" autocomplete="username" />
+        <span asp-validation-for="Username" class="text-danger"></span>
+        <label asp-for="Password"></label>
+        <input asp-for="Password" autocomplete="new-password" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+        <label asp-for="ConfirmPassword">Confirm password</label>
+        <input asp-for="ConfirmPassword" autocomplete="new-password" />
+        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+        <button class="btn btn-primary" type="submit">Register</button>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

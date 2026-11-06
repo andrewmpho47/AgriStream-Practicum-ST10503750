@@ -1,0 +1,36 @@
+@model IReadOnlyList<RealTimeProcessingSystem.Models.FarmUserSummary>
+@{
+    ViewData["Title"] = "User management";
+}
+
+<section class="surface">
+    <p class="section-kicker">ADMINISTRATION</p>
+    <h1>User management</h1>
+    <p>Passwords are never displayed. Select a role for a registered account.</p>
+    <div class="table-responsive">
+        <table class="table events-table">
+            <thead><tr><th>Username</th><th>Role</th><th>Update role</th></tr></thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td>@user.Username</td>
+                        <td>@user.SystemRole</td>
+                        <td>
+                            <form asp-action="ChangeRole" method="post" class="role-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="Username" value="@user.Username" />
+                                <select name="SystemRole" aria-label="Role for @user.Username">
+                                    <option selected="@(user.SystemRole == "Farmer")" value="Farmer">Farmer</option>
+                                    <option selected="@(user.SystemRole == "Agronomist")" value="Agronomist">Agronomist</option>
+                                    <option selected="@(user.SystemRole == "Admin")" value="Admin">Admin</option>
+                                </select>
+                                <button class="btn btn-sm btn-primary" type="submit">Save</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

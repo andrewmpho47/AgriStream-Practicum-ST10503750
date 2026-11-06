@@ -1,0 +1,108 @@
+@model RealTimeProcessingSystem.Models.FarmDashboardViewModel
+@{
+    ViewData["Title"] = "Farm dashboard";
+}
+
+<div class="dashboard-shell" data-metrics-url="@Url.Action("Metrics", "Home")">
+    <section class="hero">
+        <div>
+            <p class="eyebrow">AGRISTREAM IOT / FARM OPERATIONS</p>
+            <h1>Farm monitoring</h1>
+            <p class="hero-copy">Live sensor readings, drone image uploads, and irrigation commands.</p>
+        </div>
+        <div class="feed-status" role="status" aria-live="polite">
+            <span class="feed-dot" aria-hidden="true"></span>
+            <span><strong id="feedTitle">Azure Functions</strong><small id="feedDescription">Telemetry refreshes every 5 seconds</small></span>
+        </div>
+    </section>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Notice))
+    {
+        <div class="alert alert-info" role="status">@Model.Notice</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.Error))
+    {
+        <div class="alert alert-warning" role="alert">@Model.Error</div>
+    }
+
+    <section class="section-heading">
+        <div><p class="section-kicker">FIELD TELEMETRY</p><h2>Recent sensor readings</h2></div>
+        <form asp-action="SimulateReading" method="post">
+            @Html.AntiForgeryToken()
+            <button class="btn btn-outline-info" type="submit">Add one sample reading</button>
+        </form>
+    </section>
+    <p class="disclaimer">Sample readings are synthetic test data, not measurements from real farm sensors.</p>
+    <section class="surface events-panel">
+        <div class="table-responsive">
+            <table class="table events-table">
+                <thead>
+                    <tr><th>Device</th><th>Soil moisture</th><th>Temperature</th><th>Humidity</th><th>Irrigation</th><th>Recorded (UTC)</th></tr>
+                </thead>
+                <tbody id="readingsBody">
+                    @foreach (var reading in Model.SensorReadings)
+                    {
+                        <tr>
+                            <td class="order-id">@reading.DeviceId</td>
+                            <td>@reading.SoilMoisturePercent.ToString("N1")%</td>
+                            <td>@reading.TemperatureC.ToString("N1") °C</td>
+                            <td>@reading.HumidityPercent.ToString("N1")%</td>
+                            <td>@reading.IrrigationState</td>
+                            <td>@reading.Timestamp?.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <p class="empty-state" id="emptyState" hidden>No sensor readings are available yet. Add one sample reading to test the Table Storage → Function → dashboard path.</p>
+        </div>
+    </section>
+
+    <section class="content-grid farm-actions">
+        <article class="surface">
+            <div class="section-heading">
+                <div><p class="section-kicker">CLOUD STORAGE</p><h2>Drone imagery</h2></div>
+            </div>
+            <p>Upload an image to the private <code>drone-images</code> Blob container. The blob-triggered Function records its upload status in Table Storage.</p>
+            <form asp-action="UploadImage" method="post" enctype="multipart/form-data" class="farm-form">
+                @Html.AntiForgeryToken()
+                <label for="image">Choose a JPG, PNG, or WebP image (maximum 10 MB)</label>
+                <input id="image" name="image" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required />
+                <button class="btn btn-primary" type="submit">Upload drone image</button>
+            </form>
+        </article>
+
+        <article class="surface">
+            <div class="section-heading">
+                <div><p class="section-kicker">IRRIGATION</p><h2>Send a device command</h2></div>
+            </div>
+            <p>The HTTP-triggered Function queues the command. A separate queue-triggered Function updates the SQL device registry.</p>
+            <form asp-action="RequestIrrigation" method="post" class="farm-form">
+                @Html.AntiForgeryToken()
+                <label for="deviceId">Device ID</label>
+                <input id="deviceId" name="deviceId" maxlength="100" value="SENSOR-001" required />
+                <label for="command">Command</label>
+                <select id="command" name="command">
+                    <option value="Start">Start irrigation</option>
+                    <option value="Stop">Stop irrigation</option>
+                </select>
+                <button class="btn btn-success" type="submit">Queue irrigation command</button>
+            </form>
+        </article>
+    </section>
+
+    <section class="surface architecture-panel">
+        <div class="section-heading">
+            <div><p class="section-kicker">FOUR-FUNCTION PIPELINE</p><h2>How the services connect</h2></div>
+        </div>
+        <ol class="pipeline">
+            <li><span class="pipeline-step">01</span><span><strong>Blob trigger</strong><small>Logs drone image uploads and status to the BlobProcessingLog table.</small></span></li>
+            <li><span class="pipeline-step">02</span><span><strong>HTTP GET</strong><small>Reads recent sensor data from the SensorReadings Table Storage table.</small></span></li>
+            <li><span class="pipeline-step">03</span><span><strong>HTTP POST</strong><small>Places validated irrigation commands on the irrigation-commands queue.</small></span></li>
+            <li><span class="pipeline-step">04</span><span><strong>Queue trigger</strong><small>Processes commands and updates device status in Azure SQL Database.</small></span></li>
+        </ol>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+}

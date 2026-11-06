@@ -1,0 +1,38 @@
+﻿@{
+    ViewData["Title"] = "Azure Implementation Notes";
+}
+
+<div class="notes-page">
+    <h1>Azure Implementation Notes</h1>
+
+    <div class="panel">
+        <h3>Recommended Azure resources</h3>
+        <ul>
+            <li><strong>App Service Plan:</strong> B1 or S1 depending on load profile.</li>
+            <li><strong>Web App:</strong> Deploy the ASP.NET Core app to Azure App Service.</li>
+            <li><strong>Event Hubs Namespace:</strong> Receive streaming order and clickstream events.</li>
+            <li><strong>Function App:</strong> Scale based on event queue depth or CPU percentage.</li>
+            <li><strong>Azure SQL Database / Cosmos DB:</strong> Store processed transactional data for analytics and reporting.</li>
+        </ul>
+    </div>
+
+    <div class="panel mt-4">
+        <h3>Autoscaling strategy</h3>
+        <ul>
+            <li>Set App Service autoscale rules based on CPU usage and inbound request count.</li>
+            <li>Use Azure Functions scale-out rules with max and min instance settings.</li>
+            <li>Prefer a burst-tolerant configuration during promotion events.</li>
+            <li>Monitor with Azure Monitor and Application Insights to tune thresholds.</li>
+        </ul>
+    </div>
+
+    <div class="panel mt-4">
+        <h3>Submission checklist</h3>
+        <ul>
+            <li>Include screenshots of the Azure resources in the final word document.</li>
+            <li>Provide the deployed App Service URL in the required format.</li>
+            <li>Submit the GitHub repository link containing the source code.</li>
+            <li>Explain theory answers using the open-book reference material.</li>
+        </ul>
+    </div>
+</div>

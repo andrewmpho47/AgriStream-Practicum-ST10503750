@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - RealTimeProcessingSystem</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-dark bg-dark border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">AgriStream IoT</a>
+                <div class="navbar-nav ms-auto">
+                    <a class="nav-link" asp-controller="Home" asp-action="Index">Dashboard</a>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a class="nav-link" asp-controller="Account" asp-action="Users">User management</a>
+                    }
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <span class="nav-link">@User.Identity.Name (@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value)</span>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button class="nav-link btn btn-link" type="submit">Sign out</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a class="nav-link" asp-controller="Account" asp-action="Login">Sign in</a>
+                        <a class="nav-link" asp-controller="Account" asp-action="Register">Register</a>
+                    }
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="footer mt-auto py-3 text-muted">
+        <div class="container text-center">
+            &copy; 2026 - RealTimeProcessingSystem
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,8 @@
+.copilot-azure/
+**/bin/
+**/obj/
+**/local.settings.json
+/*.png
+/*.docx
+/~$*.docx
+/database/processed-orders.sql
